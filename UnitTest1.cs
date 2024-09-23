@@ -1,4 +1,5 @@
 using Betsson.OnlineWallets.Services;
+using Betsson.OnlineWallets.Exceptions;
 using Betsson.OnlineWallets.Data.Repositories;
 using Betsson.OnlineWallets.Data.Models;
 
@@ -103,5 +104,94 @@ public class UnitTest1
         var task = onlineWalletService.DepositFundsAsync(deposit);
         task.Wait();
         Assert.AreEqual(mockOnlineWalletEntry.BalanceBefore + deposit.Amount, task.Result.Amount);
+    }
+
+    [TestMethod]
+    public void TestDepositFundsNDepositNegative()
+    {
+        var mockOnlineWalletEntry = new OnlineWalletEntry()
+        {
+            Amount = 54.36M,
+        };
+        IOnlineWalletRepository mockOnlineWalletRepository = new MockOnlineWalletRepository(mockOnlineWalletEntry);
+        OnlineWalletService onlineWalletService = new OnlineWalletService(mockOnlineWalletRepository);
+        var deposit = new Models.Deposit();
+        deposit.Amount = -0.6M;
+        var task = onlineWalletService.DepositFundsAsync(deposit);
+        task.Wait();
+        Assert.AreEqual(mockOnlineWalletEntry.BalanceBefore + deposit.Amount, task.Result.Amount);
+    }
+
+    [TestMethod]
+    public void TestWithdrawFundsValid()
+    {
+        var mockOnlineWalletEntry = new OnlineWalletEntry()
+        {
+            Amount = 54.36M,
+        };
+        IOnlineWalletRepository mockOnlineWalletRepository = new MockOnlineWalletRepository(mockOnlineWalletEntry);
+        OnlineWalletService onlineWalletService = new OnlineWalletService(mockOnlineWalletRepository);
+        var withdrawal = new Models.Withdrawal();
+        withdrawal.Amount = 0.6M;
+        var task = onlineWalletService.WithdrawFundsAsync(withdrawal);
+        task.Wait();
+        Assert.AreEqual(mockOnlineWalletEntry.BalanceBefore - withdrawal.Amount, task.Result.Amount);
+    }
+
+    [TestMethod]
+    public void TestWithdrawFundsWithdrawAll()
+    {
+        var mockOnlineWalletEntry = new OnlineWalletEntry()
+        {
+            Amount = 54.36M,
+        };
+        IOnlineWalletRepository mockOnlineWalletRepository = new MockOnlineWalletRepository(mockOnlineWalletEntry);
+        OnlineWalletService onlineWalletService = new OnlineWalletService(mockOnlineWalletRepository);
+        var withdrawal = new Models.Withdrawal();
+        withdrawal.Amount = 54.36M;
+        var task = onlineWalletService.WithdrawFundsAsync(withdrawal);
+        task.Wait();
+        Assert.AreEqual(mockOnlineWalletEntry.BalanceBefore - withdrawal.Amount, task.Result.Amount);
+    }
+
+    [TestMethod]
+    public void TestWithdrawFundsTooMuch()
+    {
+        var mockOnlineWalletEntry = new OnlineWalletEntry()
+        {
+            Amount = 54.36M,
+        };
+        IOnlineWalletRepository mockOnlineWalletRepository = new MockOnlineWalletRepository(mockOnlineWalletEntry);
+        OnlineWalletService onlineWalletService = new OnlineWalletService(mockOnlineWalletRepository);
+        var withdrawal = new Models.Withdrawal();
+        withdrawal.Amount = 54.37M;
+        try
+        {
+            var task = onlineWalletService.WithdrawFundsAsync(withdrawal);
+            task.Wait();
+            Assert.Fail();
+        }
+        catch (AggregateException ex)
+        {
+            Assert.IsNotNull(ex.InnerException);
+            Assert.AreEqual(ex.InnerException.GetType(), typeof(InsufficientBalanceException));
+        }
+        Assert.AreEqual(mockOnlineWalletEntry.Amount, 54.36M);
+    }
+
+    [TestMethod]
+    public void TestWithdrawFundsWithdrawNegative()
+    {
+        var mockOnlineWalletEntry = new OnlineWalletEntry()
+        {
+            Amount = 54.36M,
+        };
+        IOnlineWalletRepository mockOnlineWalletRepository = new MockOnlineWalletRepository(mockOnlineWalletEntry);
+        OnlineWalletService onlineWalletService = new OnlineWalletService(mockOnlineWalletRepository);
+        var withdrawal = new Models.Withdrawal();
+        withdrawal.Amount = -54.36M;
+        var task = onlineWalletService.WithdrawFundsAsync(withdrawal);
+        task.Wait();
+        Assert.AreEqual(mockOnlineWalletEntry.BalanceBefore - withdrawal.Amount, task.Result.Amount);
     }
 }
