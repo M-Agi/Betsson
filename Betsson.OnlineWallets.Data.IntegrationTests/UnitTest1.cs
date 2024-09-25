@@ -10,14 +10,11 @@ public class ApiTests
 {
 
     /// <summary>
-    /// 
+    /// Deserialize the content of rest response to Betsson.OnlineWallets.Models.Balance object.
     /// </summary>
-    /// <param name="response"></param>
-    /// <returns></returns> <summary>
-    /// 
-    /// </summary>
-    /// <param name="response"></param>
-    /// <returns></returns>
+    /// <param name="response">the rest response to be deserialize.</param>
+    /// <returns>If the content of the response is valid, the value of the amount property.
+    ///          If the content of the response is not valid, 0.</returns>
 
     public static decimal DeserializeResponse(RestResponse response)
     {
@@ -33,9 +30,10 @@ public class ApiTests
     }
 
     /// <summary>
-    /// 
+    /// Gets the balance from "/onlinewallet/balance".
     /// </summary>
-    /// <returns></returns>
+    /// <returns>If the content of the response is valid, the value of the amount property.
+    ///          If the content of the response is not valid, 0.</returns>
     public static decimal GetBalance()
     {
         var client = new RestClient( new RestClientOptions {
@@ -52,10 +50,11 @@ public class ApiTests
     }
 
     /// <summary>
-    /// 
+    /// Deposits the given amount to "/onlinewallet/deposit".
     /// </summary>
-    /// <param name="amount"></param>
-    /// <returns></returns>
+    /// <param name="amount">The value to be deposit.</param>
+    /// <returns>If the content of the response is valid, the value of the amount property.
+    ///          If the content of the response is not valid, 0.</returns>
     public static decimal Deposit(decimal amount)
     {        
         var client = new RestClient( new RestClientOptions {
@@ -73,9 +72,9 @@ public class ApiTests
     }
 
     /// <summary>
-    /// 
+    /// Deposits the given amount to "/onlinewallet/deposit". Request expected to fail.
     /// </summary>
-    /// <param name="amount"></param>
+    /// <param name="amount">The value to be deposit.</param>
     public static void DepositExpectToFail(decimal amount)
     {        
         var client = new RestClient( new RestClientOptions {
@@ -92,10 +91,11 @@ public class ApiTests
     }
 
     /// <summary>
-    /// 
+    /// Deposits the given amount to "/onlinewallet/withdraw".
     /// </summary>
-    /// <param name="amount"></param>
-    /// <returns></returns>
+    /// <param name="amount">The value to be withdraw.</param>
+    /// <returns>If the content of the response is valid, the value of the amount property.
+    ///          If the content of the response is not valid, 0.</returns>
     public static decimal Withdraw(decimal amount)
     {
         
@@ -114,12 +114,9 @@ public class ApiTests
     }
 
     /// <summary>
-    /// 
+    /// Withdraws the given amount to "/onlinewallet/withdraw". Request expected to fail.
     /// </summary>
-    /// <param name="amount"></param> <summary>
-    /// 
-    /// </summary>
-    /// <param name="amount"></param>
+    /// <param name="amount">The value to be withdraw.</param>
     public static void WithdrawExpectToFail(decimal amount)
     {        
         var client = new RestClient( new RestClientOptions {
@@ -472,7 +469,7 @@ public class ApiTests
     }
 
     /// <summary>
-    /// 
+    /// Tests whether depositing and withdrawing multiple times can be possible.
     /// </summary>
     [TestMethod]
     public void TestDepositDepositWithdrawwithdrawDeposit()
