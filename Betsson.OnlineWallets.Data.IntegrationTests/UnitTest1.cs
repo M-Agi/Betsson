@@ -8,6 +8,20 @@ namespace Betsson.OnlineWallets.Data.IntegrationTests;
 [TestClass]
 public class ApiTests
 {
+
+
+    public static decimal DeserializeResponse(RestResponse response)
+    {
+        if (response.Content != null)
+        {
+            var json = JsonConvert.DeserializeObject<Balance>(response.Content);
+            if (json != null) {
+                return json.Amount;
+            }
+        }
+        Assert.Fail("Response Content is invalid!");
+        return 0;
+    }
     public static decimal GetBalance()
     {
         var client = new RestClient( new RestClientOptions {
@@ -20,8 +34,7 @@ public class ApiTests
         
         Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.OK);
         Assert.AreEqual( response.StatusDescription, "OK");
-        var json = JsonConvert.DeserializeObject<Balance>(response.Content);
-        return json.Amount;
+        return DeserializeResponse(response);
     }
 
     public static decimal Deposit(decimal amount)
@@ -37,8 +50,7 @@ public class ApiTests
         
         Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.OK);
         Assert.AreEqual( response.StatusDescription, "OK");
-        var json = JsonConvert.DeserializeObject<Balance>(response.Content);
-        return json.Amount;
+        return DeserializeResponse(response);
     }
 
     public static void DepositExpectToFail(decimal amount)
@@ -56,6 +68,7 @@ public class ApiTests
         Assert.AreEqual( response.StatusDescription, "Bad Request");
     }
 
+
     public static decimal Withdraw(decimal amount)
     {
         
@@ -70,8 +83,22 @@ public class ApiTests
         
         Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.OK);
         Assert.AreEqual( response.StatusDescription, "OK");
-        var json = JsonConvert.DeserializeObject<Balance>(response.Content);
-        return json.Amount;
+        return DeserializeResponse(response);
+    }
+
+    public static void WithdrawExpectToFail(decimal amount)
+    {        
+        var client = new RestClient( new RestClientOptions {
+            BaseUrl = new Uri("http://localhost:8080")
+        } ); 
+        var request = new RestRequest( "/onlinewallet/withdraw", Method.Post);
+
+        request.AddJsonBody( "{ \"amount\": " + amount + "  }" );
+    
+        var response = client.Execute( request );
+        
+        Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.BadRequest);
+        Assert.AreEqual( response.StatusDescription, "Bad Request");
     }
 
     public static void ClearBalance()
@@ -256,6 +283,74 @@ public class ApiTests
         Assert.AreEqual( amount,  9999999999999999999999999999m);
         var balance = Withdraw(9999999999999999999999999998m);
         Assert.AreEqual( balance, amount - 9999999999999999999999999998m);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawInvalidValue()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        WithdrawExpectToFail(-50);
+        var balance = GetBalance();
+        Assert.AreEqual( balance, 50);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawFirstValidThanInvalidValue()
+    {               
+        ClearBalance();
+
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+
+        var amount2 = Withdraw(30);
+        Assert.AreEqual( amount2,  50-30);
+
+        WithdrawExpectToFail(-5);
+
+        var balance = GetBalance();
+        Assert.AreEqual( balance, amount2);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawFirstValidThanInvalidThanValidValue()
+    {               
+        ClearBalance();
+
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+
+        var amount2 = Withdraw(30);
+        Assert.AreEqual( amount2,  50-30);
+
+        WithdrawExpectToFail(-5);
+
+        var balance = GetBalance();
+        Assert.AreEqual( balance, amount2);
+
+        var amount3 = Withdraw(10);
+        Assert.AreEqual( amount3,  balance - 10);
+
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawTooMuch()
+    {               
+        ClearBalance();
+
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+
+        WithdrawExpectToFail(50.0000000000001m);
+
+        var balance = GetBalance();
+        Assert.AreEqual( balance, 50);
+
         ClearBalance();
     }
 }
