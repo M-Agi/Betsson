@@ -9,6 +9,15 @@ namespace Betsson.OnlineWallets.Data.IntegrationTests;
 public class ApiTests
 {
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="response"></param>
+    /// <returns></returns> <summary>
+    /// 
+    /// </summary>
+    /// <param name="response"></param>
+    /// <returns></returns>
 
     public static decimal DeserializeResponse(RestResponse response)
     {
@@ -22,6 +31,11 @@ public class ApiTests
         Assert.Fail("Response Content is invalid!");
         return 0;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public static decimal GetBalance()
     {
         var client = new RestClient( new RestClientOptions {
@@ -37,6 +51,11 @@ public class ApiTests
         return DeserializeResponse(response);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="amount"></param>
+    /// <returns></returns>
     public static decimal Deposit(decimal amount)
     {        
         var client = new RestClient( new RestClientOptions {
@@ -53,6 +72,10 @@ public class ApiTests
         return DeserializeResponse(response);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="amount"></param>
     public static void DepositExpectToFail(decimal amount)
     {        
         var client = new RestClient( new RestClientOptions {
@@ -68,7 +91,11 @@ public class ApiTests
         Assert.AreEqual( response.StatusDescription, "Bad Request");
     }
 
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="amount"></param>
+    /// <returns></returns>
     public static decimal Withdraw(decimal amount)
     {
         
@@ -86,6 +113,13 @@ public class ApiTests
         return DeserializeResponse(response);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="amount"></param> <summary>
+    /// 
+    /// </summary>
+    /// <param name="amount"></param>
     public static void WithdrawExpectToFail(decimal amount)
     {        
         var client = new RestClient( new RestClientOptions {
@@ -101,12 +135,18 @@ public class ApiTests
         Assert.AreEqual( response.StatusDescription, "Bad Request");
     }
 
+    /// <summary>
+    /// Helper function to set the balanace back to 0.
+    /// </summary>
     public static void ClearBalance()
     {
         var amount = GetBalance();
         Withdraw(amount);
     }
 
+    /// <summary>
+    /// Tests whether the balance is 0 for the first time.
+    /// </summary>
     [TestMethod]
     public void TestGetBalanceFirsttime()
     {
@@ -115,7 +155,9 @@ public class ApiTests
         Assert.AreEqual( amount, 0 );
     }
 
-
+    /// <summary>
+    /// Tests whether the expected deposited amount is returned back.
+    /// </summary>
     [TestMethod]
     public void TestDepositValidValue()
     {               
@@ -125,6 +167,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether the expected deposited amounts are returned back.
+    /// </summary>
     [TestMethod]
     public void TestDepositMultipleTimes()
     {               
@@ -136,6 +181,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether the expected deposited amount is alse returned back when getting the balance. 
+    /// </summary>
     [TestMethod]
     public void TestDepositAmountIsSameAsGetBalance()
     {               
@@ -146,6 +194,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether depositing 0 is possible.
+    /// </summary>
     [TestMethod]
     public void TestDepositZero()
     {               
@@ -155,6 +206,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether depositing small amount is possible.
+    /// </summary>
     [TestMethod]
     public void TestDepositSmallAmount()
     {               
@@ -164,15 +218,21 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether depositing large amount is possible.
+    /// </summary>
     [TestMethod]
     public void TestDepositLargeAmount()
     {               
         ClearBalance();
-        var amount = Deposit(99999999999999999999999m);
-        Assert.AreEqual( amount,  99999999999999999999999m);
+        var amount = Deposit(9999999999999999999999999999m);
+        Assert.AreEqual( amount,  9999999999999999999999999999m);
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether depositing negative amount is NOT possible.
+    /// </summary>
     [TestMethod]
     public void TestDepositInvalidValue()
     {               
@@ -183,6 +243,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether depositing negative amount for the second time is NOT possible.
+    /// </summary>
     [TestMethod]
     public void TestDepositFirstValidThanInvalidValue()
     {               
@@ -198,6 +261,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether depositing negative amount for the second time is NOT possible, but after that depositing valid amount is possible.
+    /// </summary>
     [TestMethod]
     public void TestDepositFirstValidThanInvalidThanValidValue()
     {               
@@ -217,7 +283,9 @@ public class ApiTests
         ClearBalance();
     }
 
-
+    /// <summary>
+    /// Tests whether withdrawing valid amount is possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawValidValue()
     {               
@@ -229,6 +297,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing multiple times is possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawMultipleTimes()
     {               
@@ -242,6 +313,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing 0 is possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawZero()
     {               
@@ -253,6 +327,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing everything is possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawAll()
     {               
@@ -264,6 +341,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing small amount is possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawSmallAmount()
     {               
@@ -275,6 +355,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing large amount is possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawLargeAmount()
     {               
@@ -286,6 +369,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing negative amount is NOT possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawInvalidValue()
     {               
@@ -298,6 +384,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing negative amount for the second time is NOT possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawFirstValidThanInvalidValue()
     {               
@@ -316,6 +405,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing valid amount is possible after trying to withdraw negative amount.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawFirstValidThanInvalidThanValidValue()
     {               
@@ -338,6 +430,9 @@ public class ApiTests
         ClearBalance();
     }
 
+    /// <summary>
+    /// Tests whether withdrawing more than the balance is NOT possible.
+    /// </summary>
     [TestMethod]
     public void TestWithdrawTooMuch()
     {               
@@ -350,6 +445,57 @@ public class ApiTests
 
         var balance = GetBalance();
         Assert.AreEqual( balance, 50);
+
+        ClearBalance();
+    }
+
+    /// <summary>
+    /// Tests whether withdrawing more than the balance for the second time is NOT possible.
+    /// </summary>
+    [TestMethod]
+    public void TestWithdrawTooMuchForSecondTime()
+    {               
+        ClearBalance();
+
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+
+        var amount2 = Withdraw(30);
+        Assert.AreEqual( amount2,  amount - 30);
+
+        WithdrawExpectToFail(30);
+
+        var balance = GetBalance();
+        Assert.AreEqual( amount2,  amount - 30);
+
+        ClearBalance();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    [TestMethod]
+    public void TestDepositDepositWithdrawwithdrawDeposit()
+    {               
+        ClearBalance();
+
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+
+        var amount2 = Deposit(10);
+        Assert.AreEqual( amount2,  50 + 10);
+
+        var amount3 = Withdraw(30);
+        Assert.AreEqual( amount3,  amount2 - 30);
+
+        var amount4 = Withdraw(5);
+        Assert.AreEqual( amount4,  amount3 - 5);
+
+        var amount5 = Deposit(15);
+        Assert.AreEqual( amount5,  amount4 + 15);
+
+        var balance = GetBalance();
+        Assert.AreEqual( balance,  amount4 + 15);
 
         ClearBalance();
     }
