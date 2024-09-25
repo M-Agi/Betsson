@@ -99,6 +99,27 @@ public class ApiTests
     }
 
     [TestMethod]
+    public void TestDepositMultipleTimes()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var amount2 = Deposit(25);
+        Assert.AreEqual( amount2,  75);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestDepositAmountIsSameAsGetBalance()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        Assert.AreEqual(amount, GetBalance());
+        ClearBalance();
+    }
+
+    [TestMethod]
     public void TestDepositZero()
     {               
         ClearBalance();
@@ -166,6 +187,75 @@ public class ApiTests
         var amount2 = Deposit(10);
         Assert.AreEqual( amount2,  9 + 10);
 
+        ClearBalance();
+    }
+
+
+    [TestMethod]
+    public void TestWithdrawValidValue()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var balance = Withdraw(12);
+        Assert.AreEqual( balance, amount - 12);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawMultipleTimes()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var amount2 = Withdraw(12);
+        Assert.AreEqual( amount2, amount - 12);
+        var amount3 = Withdraw(11);
+        Assert.AreEqual( amount3, amount - 12 - 11);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawZero()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var balance = Withdraw(0);
+        Assert.AreEqual( balance, amount - 0);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawAll()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var balance = Withdraw(amount);
+        Assert.AreEqual( balance, 0);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawSmallAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var balance = Withdraw(0.000000000000000000000000001m);
+        Assert.AreEqual( balance, amount - 0.000000000000000000000000001m);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestWithdrawLargeAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit(9999999999999999999999999999m);
+        Assert.AreEqual( amount,  9999999999999999999999999999m);
+        var balance = Withdraw(9999999999999999999999999998m);
+        Assert.AreEqual( balance, amount - 9999999999999999999999999998m);
         ClearBalance();
     }
 }
