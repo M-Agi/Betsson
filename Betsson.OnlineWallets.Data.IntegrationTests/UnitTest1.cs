@@ -8,7 +8,7 @@ namespace Betsson.OnlineWallets.Data.IntegrationTests;
 [TestClass]
 public class ApiTests
 {
-    public static RestResponse GetBalance()
+    public static decimal GetBalance()
     {
         var client = new RestClient( new RestClientOptions {
             BaseUrl = new Uri("http://localhost:8080")
@@ -20,10 +20,11 @@ public class ApiTests
         
         Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.OK);
         Assert.AreEqual( response.StatusDescription, "OK");
-        return response;
+        var json = JsonConvert.DeserializeObject<Balance>(response.Content);
+        return json.Amount;
     }
 
-    public static RestResponse Deposit(decimal amount)
+    public static decimal Deposit(decimal amount)
     {
         
         var client = new RestClient( new RestClientOptions {
@@ -37,10 +38,11 @@ public class ApiTests
         
         Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.OK);
         Assert.AreEqual( response.StatusDescription, "OK");
-        return response;
+        var json = JsonConvert.DeserializeObject<Balance>(response.Content);
+        return json.Amount;
     }
 
-    public static RestResponse Withdraw(decimal amount)
+    public static decimal Withdraw(decimal amount)
     {
         
         var client = new RestClient( new RestClientOptions {
@@ -54,26 +56,22 @@ public class ApiTests
         
         Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.OK);
         Assert.AreEqual( response.StatusDescription, "OK");
-        return response;
+        var json = JsonConvert.DeserializeObject<Balance>(response.Content);
+        return json.Amount;
     }
 
     public static void ClearBalance()
     {
-        var response = GetBalance();
-        if (response.Content != "{\"amount\":0}")
-        {
-            var json = JsonConvert.DeserializeObject<Balance>(response.Content);
-            Withdraw(json.Amount);
-        }
-
+        var amount = GetBalance();
+        Withdraw(amount);
     }
 
     [TestMethod]
     public void TestGetBalanceFirsttime()
     {
         ClearBalance();
-        var response = GetBalance();
-        Assert.AreEqual( response.Content,  "{\"amount\":0}" );
+        var amount = GetBalance();
+        Assert.AreEqual( amount, 0 );
     }
 
 
@@ -81,8 +79,35 @@ public class ApiTests
     public void TestDepositValidValue()
     {               
         ClearBalance();
-        var response = Deposit(50);
-        Assert.AreEqual( response.Content,  "{\"amount\":50}" );
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestDepositZero()
+    {               
+        ClearBalance();
+        var amount = Deposit(0);
+        Assert.AreEqual( amount, 0);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestDepositSmallAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit( 0.00000000000000000001m);
+        Assert.AreEqual( amount, 0.00000000000000000001m);
+        ClearBalance();
+    }
+
+    [TestMethod]
+    public void TestDepositLargeAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit(99999999999999999999999m);
+        Assert.AreEqual( amount,  99999999999999999999999m);
         ClearBalance();
     }
 }
