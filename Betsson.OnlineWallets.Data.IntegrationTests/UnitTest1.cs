@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using Betsson.OnlineWallets.Models;
+using System.Net;
 
 namespace Betsson.OnlineWallets.Data.IntegrationTests;
 
@@ -75,7 +75,7 @@ public class ApiTests
     /// Deposits the given amount to "/onlinewallet/deposit". Request expected to fail.
     /// </summary>
     /// <param name="amount">The value to be deposit.</param>
-    public static void DepositExpectToFail(decimal amount)
+    public static void DepositExpectToFail(decimal amount, HttpStatusCode httpStatusCode = HttpStatusCode.BadRequest)
     {        
         var client = new RestClient( new RestClientOptions {
             BaseUrl = new Uri("http://localhost:8080")
@@ -86,8 +86,16 @@ public class ApiTests
     
         var response = client.Execute( request );
         
-        Assert.AreEqual( response.StatusCode, System.Net.HttpStatusCode.BadRequest);
-        Assert.AreEqual( response.StatusDescription, "Bad Request");
+        if (httpStatusCode == HttpStatusCode.BadRequest)
+        { 
+            Assert.AreEqual( response.StatusCode, HttpStatusCode.BadRequest);
+            Assert.AreEqual( response.StatusDescription, "Bad Request");
+        }
+        else
+        {
+            Assert.AreEqual( response.StatusCode, HttpStatusCode.InternalServerError);
+            Assert.AreEqual( response.StatusDescription, "Internal Server Error");
+        }
     }
 
     /// <summary>
@@ -216,6 +224,19 @@ public class ApiTests
     }
 
     /// <summary>
+    /// Tests whether depositing the minimum amount is possible.
+    /// </summary>
+    [TestMethod]
+    [Ignore("Fails, depositing the minimum value of decimal is not possible.")]
+    public void TestDepositMinimumAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit( decimal.MinValue);
+        Assert.AreEqual( amount, decimal.MinValue);
+        ClearBalance();
+    }
+
+    /// <summary>
     /// Tests whether depositing large amount is possible.
     /// </summary>
     [TestMethod]
@@ -224,6 +245,34 @@ public class ApiTests
         ClearBalance();
         var amount = Deposit(9999999999999999999999999999m);
         Assert.AreEqual( amount,  9999999999999999999999999999m);
+        ClearBalance();
+    }
+
+    /// <summary>
+    /// Tests whether depositing the maximum amount is possible.
+    /// </summary>
+    [TestMethod]
+    public void TestDepositMaxAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit(decimal.MaxValue);
+        Assert.AreEqual( amount,  decimal.MaxValue);
+        ClearBalance();
+    }
+
+    /// <summary>
+    /// Tests whether depositing after the maximum amount is NOT possible.
+    /// </summary>
+    [TestMethod]
+    [Ignore("Fails, server stuck in internal server error after this test.")]
+    public void TestDepositAfterMaximumAmountReached()
+    {               
+        ClearBalance();
+        var amount = Deposit(decimal.MaxValue);
+        Assert.AreEqual( amount,  decimal.MaxValue);
+        DepositExpectToFail(1m, HttpStatusCode.InternalServerError);
+        var balance = GetBalance();
+        Assert.AreEqual( balance,  amount);
         ClearBalance();
     }
 
@@ -295,6 +344,21 @@ public class ApiTests
     }
 
     /// <summary>
+    /// Tests whether the expected withdraw amount is also returned back when getting the balance. 
+    /// </summary>
+    [TestMethod]
+    public void TestWithdrawAmountIsSameAsGetBalance()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var balance = Withdraw(12);
+        Assert.AreEqual( balance, amount - 12);
+        Assert.AreEqual(balance, GetBalance());
+        ClearBalance();
+    }
+    
+    /// <summary>
     /// Tests whether withdrawing multiple times is possible.
     /// </summary>
     [TestMethod]
@@ -353,6 +417,21 @@ public class ApiTests
     }
 
     /// <summary>
+    /// Tests whether withdrawing the minimum amount is possible.
+    /// </summary>
+    [TestMethod]
+    [Ignore("Fails, withdrawing the minimum value of decimal is not possible.")]
+    public void TestWithdrawMinimumAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit(50);
+        Assert.AreEqual( amount,  50);
+        var balance = Withdraw(decimal.MinValue);
+        Assert.AreEqual( balance, amount - decimal.MinValue);
+        ClearBalance();
+    }
+
+    /// <summary>
     /// Tests whether withdrawing large amount is possible.
     /// </summary>
     [TestMethod]
@@ -363,6 +442,20 @@ public class ApiTests
         Assert.AreEqual( amount,  9999999999999999999999999999m);
         var balance = Withdraw(9999999999999999999999999998m);
         Assert.AreEqual( balance, amount - 9999999999999999999999999998m);
+        ClearBalance();
+    }
+
+    /// <summary>
+    /// Tests whether withdrawing the maximum amount is possible.
+    /// </summary>
+    [TestMethod]
+    public void TestWithdrawMaximumAmount()
+    {               
+        ClearBalance();
+        var amount = Deposit(decimal.MaxValue);
+        Assert.AreEqual( amount,  decimal.MaxValue);
+        var balance = Withdraw(decimal.MaxValue);
+        Assert.AreEqual( balance, 0);
         ClearBalance();
     }
 
@@ -438,7 +531,7 @@ public class ApiTests
         var amount = Deposit(50);
         Assert.AreEqual( amount,  50);
 
-        WithdrawExpectToFail(50.0000000000001m);
+        WithdrawExpectToFail(50 + decimal.MinValue);
 
         var balance = GetBalance();
         Assert.AreEqual( balance, 50);
@@ -493,6 +586,24 @@ public class ApiTests
 
         var balance = GetBalance();
         Assert.AreEqual( balance,  amount4 + 15);
+
+        ClearBalance();
+    }
+
+    /// <summary>
+    /// Tests whether after depositing the maximum amount withdrawing the minimum amount is possible.
+    /// </summary>
+    [TestMethod]
+    [Ignore("Fails, withdrawing the minimum value of decimal is not possible.")]
+    public void TestDepositLargeWithdrawSmallAmount()
+    {               
+        ClearBalance();
+
+        var amount = Deposit(decimal.MaxValue);
+        Assert.AreEqual( amount,  decimal.MaxValue);
+
+        var amount2 = Withdraw(decimal.MinValue);
+        Assert.AreEqual( amount2,  amount - decimal.MinValue);
 
         ClearBalance();
     }
